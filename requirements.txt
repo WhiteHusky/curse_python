@@ -1,3 +1,4 @@
-requests>=2.24,<2.25
 python-dateutil>=2.8,<2.9
 progressbar2>=3.53,<3.54
+requests>=2.25,<2.26
+python-dateutil>=2.8,<2.9

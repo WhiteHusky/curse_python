@@ -34,7 +34,7 @@ class AddonFile(object):
         self.file_id: int = file_response['id']
         self.display_name: str = file_response['displayName']
         self.file_name: str = file_response['fileName']
-        self.file_date: datetime = date_parser.parse(file_response['fileDate'])
+        self.file_date: datetime = date_parser.isoparse(file_response['fileDate'])
         self.file_length: int = file_response['fileLength']
         self.release_type: int = file_response['releaseType']
         self.file_status: int = file_response['fileStatus']
@@ -58,7 +58,7 @@ class AddonFile(object):
         self.metadata: Optional[str] = file_response['installMetadata']
         self.server_pack_file_id: Optional[int] = file_response['serverPackFileId']
         self.has_install_script: bool = file_response['hasInstallScript']
-        self.game_version_date_released: datetime = date_parser.parse(file_response['gameVersionDateReleased'])
+        self.game_version_date_released: datetime = date_parser.isoparse(file_response['gameVersionDateReleased'])
         self.game_version_flavor: Optional[str] = file_response['gameVersionFlavor']
     
     def __repr__(self):

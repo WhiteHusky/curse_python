@@ -139,3 +139,7 @@ cython_debug/
 
 # vscode settings
 .vscode/settings.json
+
+# testing
+mod-manifest.json
+testing/*

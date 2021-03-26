@@ -11,7 +11,7 @@
             "module": "curse_python",
             "args": [
                 "--save",
-                "mods",
+                "testing/mods",
                 "--target=1.12.2",
                 "223794",
                 "228027",
