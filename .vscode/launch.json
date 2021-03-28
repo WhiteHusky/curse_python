@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Module",
+            "name": "Python: Module: New Manifest",
             "type": "python",
             "request": "launch",
             "module": "curse_python",
@@ -21,6 +21,16 @@
                 "69163",
                 "291737",
                 "271835"
+            ]
+        },
+        {
+            "name": "Python: Module: Existing Manifest",
+            "type": "python",
+            "request": "launch",
+            "module": "curse_python",
+            "args": [
+                "--save",
+                "testing/mods"
             ]
         },
         {
