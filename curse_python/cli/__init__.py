@@ -14,7 +14,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser(description='Download Minecraft Mods')
 parser.add_argument('addon_ids', metavar='a', type=int, nargs='?', help='Addons to download')
 parser.add_argument('--target', type=str, nargs='+', help='Acceptable version targets')
-parser.add_argument('--save', type=str, help='Save location for mods')
+parser.add_argument('--save', required=True, type=str, help='Save location for mods')
 parser.add_argument('--manifest', default='./mod-manifest.json', type=str, help='Manifest location for updating mods')
 
 def download_addon(save_location, addon_file):
