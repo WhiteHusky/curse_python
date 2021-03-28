@@ -22,14 +22,15 @@ class ModProject(object):
 class ModFile(object):
     """Represents a file for a mod project
     """
-    def __init__(self, project_id, file_response):
+    def __init__(self, project, file_response):
         """Create a new ModFile object
 
         Args:
             project_id (int): Project ID
             file_response (dict): Get response to populate with
         """
-        self.project_id: int = project_id
+        self.project: ModProject = project
+        self.project_id: int = project.project_id
         self.file_id: int = file_response['id']
         self.display_name: str = file_response['displayName']
         self.file_name: str = file_response['fileName']
@@ -89,7 +90,7 @@ def get_mod_project(project_id, force=False) -> ModProject:
         file_responses = get_request(f'/addon/{project_id}/files')
         project = ModProject(project_id)
         for file_response in file_responses:
-            project.files.append(ModFile(project_id, file_response))
+            project.files.append(ModFile(project, file_response))
 
         project_cache[project_id] = project
         return project
