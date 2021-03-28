@@ -45,6 +45,12 @@ optional arguments:
 
 The addon manifest keeps track of the desired version targets, wanted addons, and the files obtained. Version targets and wanted addons can be user-edited but downloaded addons are best managed by the CLI.
 
+## Future
+
+* Addon version pinning
+
 ## Background
 
-This was made primarily out of frustration that there was no light or system agnostic way to somewhat intelligently obtain Minecraft addons from CurseForge without manually searching it down and resolving dependencies.
+This was made primarily out of frustration that there was no light or system agnostic way to somewhat intelligently obtain Minecraft addons from CurseForge without manually searching it down and resolving dependencies. Additionally it bothered me when it came to modpacks since they're just repackaging these mods and sending them out which came with the trouble of redownloading them in their entirety when it updates.
+
+This aims to solve the issue by leaning on CurseForge's API to locate, solve dependencies, download, and find updates for existing mods.
