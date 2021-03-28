@@ -1,4 +1,4 @@
-from curse_python.mods import get_mod_project
+from curse_python.mods import get_mod_project, ModFile
 from curse_python.resolving import resolve_projects
 from curse_python.exceptions import CanNotResolveException
 from curse_python.cli.manifest import ModManifest, DownloadedMod
@@ -20,21 +20,36 @@ parser.add_argument('--target', type=str, nargs='+', help='Acceptable version ta
 parser.add_argument('--save', required=True, type=str, help='Save location for mods.')
 parser.add_argument('--manifest', default='./mod-manifest.json', type=str, help='Manifest location for updating mods and to defer for version targets or wanted project ids. Defaults to ./mod-manifest.json.')
 
-def download_mod_file(save_location, mod_file):
-    r = requests.get(mod_file.download_url, stream=True)
-    content_length = int(r.headers['content-length'])
+def download_mod_files(save_location, mod_files: List[ModFile]):
+    session = requests.Session()
+    total = 0
     total_obtained = 0
-    r.raise_for_status()
-    bar = progressbar.DataTransferBar(max_value=content_length)
-    with open(Path(save_location).joinpath(mod_file.file_name), 'wb') as fd:
-        # Avoid downloading and finding we don't have enough space on disk.
-        fd.truncate(content_length)
-        fd.seek(0, 0)
-        for chunk in r.iter_content(chunk_size=128):
-            total_obtained = total_obtained + len(chunk)
-            bar.update(total_obtained)
-            fd.write(chunk)
-    bar.finish()
+    for mod_file in mod_files:
+        total += mod_file.file_length
+    widgets = [
+        progressbar.widgets.Percentage(),
+        ' of ', progressbar.DataSize('max_value'),
+        ' @ ', progressbar.AdaptiveTransferSpeed(),
+        ', ', progressbar.Variable('file'),
+        ' ', progressbar.Bar(),
+        ' ', progressbar.Timer(),
+        ' ', progressbar.AdaptiveETA()
+    ]
+
+    with progressbar.ProgressBar(max_value=total, widgets=widgets).start() as bar:
+        for mod_file in mod_files:
+            bar.update(total_obtained, file=mod_file.file_name)
+            r = session.get(mod_file.download_url, stream=True)
+            #content_length = int(r.headers['content-length'])
+            r.raise_for_status()
+            with open(Path(save_location).joinpath(mod_file.file_name), 'wb') as fd:
+                # Avoid downloading and finding we don't have enough space on disk.
+                fd.truncate(mod_file.file_length)
+                fd.seek(0, 0)
+                for chunk in r.iter_content(chunk_size=128):
+                    total_obtained = total_obtained + len(chunk)
+                    bar.update(total_obtained)
+                    fd.write(chunk)
 
 def load_config_from_file(manifest_location):
     json_string = None
@@ -64,6 +79,7 @@ def main():
         print(f'Project ID {err.project_id} is not compatible with any versions provided.')
         sys.exit(1)
     work_done = False
+    to_download: List[ModFile] = []
     for mod_file in mod_files:
         download = False
         existing_mod: Optional[DownloadedMod] = None
@@ -76,7 +92,7 @@ def main():
             print(f'Will obtain new file: {mod_file.file_name}.')
             download = True
         elif existing_mod and existing_mod.file_date < mod_file.file_date:
-            print(f'Will replace {existing_mod.filename} with {mod_file.filename}')
+            print(f'Will replace {existing_mod.file_name} with {mod_file.file_name}')
             old_mod_path = save_location.joinpath(existing_mod.file_name)
             if old_mod_path.exists():
                 remove(old_mod_path)
@@ -87,7 +103,7 @@ def main():
             print(f'{mod_file.file_name} is already up to date.')
         
         if download:
-            download_mod_file(save_location, mod_file)
+            to_download.append(mod_file)
             if existing_mod:
                 existing_mod.file_date = mod_file.file_date
                 existing_mod.file_name = mod_file.file_name
@@ -95,6 +111,9 @@ def main():
                 mod_manifest.downloaded_mod(mod_file)
             work_done = True
     
+    if len(to_download) > 0:
+        download_mod_files(save_location, to_download)
+
     if work_done:
         project_ids_to_remove = []
         config_update = True
