@@ -11,11 +11,14 @@ import sys
 from os import remove
 from pathlib import Path
 
-parser = argparse.ArgumentParser(description='Download CurseForge Addons')
-parser.add_argument('addon_ids', metavar='a', type=int, nargs='?', help='Addons to download')
-parser.add_argument('--target', type=str, nargs='+', help='Acceptable version targets')
-parser.add_argument('--save', required=True, type=str, help='Save location for Addons')
-parser.add_argument('--manifest', default='./addon-manifest.json', type=str, help='Manifest location for updating addons')
+parser = argparse.ArgumentParser(
+    prog='curse_python',
+    description='Download CurseForge Addons'
+)
+parser.add_argument('addon_ids', metavar='addon-id', type=int, nargs='*', help='Addons to download.')
+parser.add_argument('--target', type=str, nargs='+', help='Acceptable version targets.')
+parser.add_argument('--save', required=True, type=str, help='Save location for addons.')
+parser.add_argument('--manifest', default='./addon-manifest.json', type=str, help='Manifest location for updating addons and to defer for version targets or wanted addons. Defaults to ./addon_manifest.json.')
 
 def download_addon(save_location, addon_file):
     r = requests.get(addon_file.download_url, stream=True)
