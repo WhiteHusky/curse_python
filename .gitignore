@@ -141,5 +141,5 @@ cython_debug/
 .vscode/settings.json
 
 # testing
-addon-manifest.json
+mod-manifest.json
 testing/*

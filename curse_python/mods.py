@@ -2,35 +2,34 @@ from .common import get_request
 from datetime import datetime
 from dateutil import parser as date_parser
 from typing import List, Optional
-addon_cache = {}
+project_cache = {}
 
-class AddonSparse(object):
-    """A sparse representation of an addon with only AddonFiles
+class ModProject(object):
+    """A mod project containing a list of mod files available.
     """
-    def __init__(self, addon_id, addon_files):
-        """Create a new AddonSparse object
+    def __init__(self, project_id):
+        """Create a new ModProject object
 
         Args:
-            addon_id (int): Addon ID
-            addon_files (List[AddonFile]): Addon files
+            project_id (int): Project ID
         """
-        self.addon_id: int = addon_id
-        self.addon_files: List[AddonFile] = addon_files
+        self.project_id: int = project_id
+        self.files: List[ModFile] = []
     
     def __repr__(self):
-        return str(self.addon_id)
+        return str(self.project_id)
 
-class AddonFile(object):
-    """Represents a file for an addon
+class ModFile(object):
+    """Represents a file for a mod project
     """
-    def __init__(self, addon_id, file_response):
-        """Create a new AddonFile object
+    def __init__(self, project_id, file_response):
+        """Create a new ModFile object
 
         Args:
-            addon_id (int): Addon ID
+            project_id (int): Project ID
             file_response (dict): Get response to populate with
         """
-        self.addon_id: int = addon_id
+        self.project_id: int = project_id
         self.file_id: int = file_response['id']
         self.display_name: str = file_response['displayName']
         self.file_name: str = file_response['fileName']
@@ -42,11 +41,11 @@ class AddonFile(object):
         self.alternative_id: Optional[int] = None
         if file_response['isAlternate']:
             self.alternative_id = file_response['alternateFileId']
-        self.dependencies: List[AddonSparse] = []
+        self.dependencies: List[ModProject] = []
         for dependency_response in file_response['dependencies']:
             if dependency_response['type'] == 3:
-                self.dependencies.append(get_addon_files(dependency_response['addonId']))
-            
+                self.dependencies.append(get_mod_project(dependency_response['addonId']))
+
         self.is_available: bool = file_response['isAvailable']
         self.modules: List[Module] = []
         for module_response in file_response['modules']:
@@ -71,26 +70,26 @@ class Module(object):
     
 
 def discard_cache() -> None:
-    global addon_cache
-    addon_cache = {}
+    global project_cache
+    project_cache = {}
 
-def get_addon_files(addon_id, force=False) -> AddonSparse:
-    """Gets a addon by it's addon ID (also known as project ID)
+def get_mod_project(project_id, force=False) -> ModProject:
+    """Gets a project by it's project ID
 
     Args:
-        addon_id (int): Addon ID.
+        project_id (int): Project ID.
         force (bool, optional): Skip cache. Defaults to False.
 
     Returns:
-        AddonSparse: A sparse addon class.
+        ModProject: A ModProject class containing its files.
     """
-    if not force and addon_id in addon_cache:
-        return addon_cache[addon_id]
+    if not force and project_id in project_cache:
+        return project_cache[project_id]
     else:
-        file_responses = get_request(f'/addon/{addon_id}/files')
-        addon_files = []
+        file_responses = get_request(f'/addon/{project_id}/files')
+        project = ModProject(project_id)
         for file_response in file_responses:
-            addon_files.append(AddonFile(addon_id, file_response))
-        addon = AddonSparse(addon_id, addon_files)
-        addon_cache[addon_id] = addon
-        return addon
+            project.files.append(ModFile(project_id, file_response))
+
+        project_cache[project_id] = project
+        return project

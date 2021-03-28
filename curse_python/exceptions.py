@@ -5,7 +5,7 @@ class RequestException(Exception):
         super().__init__(self.message)
 
 class CanNotResolveException(Exception):
-    def __init__(self, addon_id, version_targets):
-        self.addon_id = addon_id
-        self.message = f'Addon ID {addon_id} is not compatiable with versions {version_targets}'
+    def __init__(self, project_id, version_targets):
+        self.project_id = project_id
+        self.message = f'Project ID {project_id} is not compatible with versions {version_targets}'
         super().__init__(self.message)
