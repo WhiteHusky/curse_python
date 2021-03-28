@@ -43,7 +43,7 @@ optional arguments:
 }
 ```
 
-The addon manifest keeps track of the desired version targets, wanted addons, and the files obtained. Version targets and wanted addons can be user-edited but downloaded addons are best managed by the script.
+The addon manifest keeps track of the desired version targets, wanted addons, and the files obtained. Version targets and wanted addons can be user-edited but downloaded addons are best managed by the CLI.
 
 ## Background
 
