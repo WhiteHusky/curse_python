@@ -1,4 +1,4 @@
-from .common import BASE_URL, get_request
+from .common import get_request
 from datetime import datetime
 from dateutil import parser as date_parser
 from typing import List, Optional
