@@ -1,6 +1,6 @@
 # Curse Python: A Simple CurseForge Mod/Project Library & Manager
 
-Given a list of project ids it will work out a list of mod files and their dependencies to a project. With the CLI interface, it can also download and manage these mods.
+Given a list of project IDs it will work out a list of mod files and their dependencies to a project. With the CLI interface, it can also download and manage these mods.
 
 It's primarily targeted for Minecraft but there's nothing stopping someone using it for something else that CurseForge provides.
 
@@ -48,6 +48,10 @@ The mod manifest keeps track of the desired version targets, wanted projects, an
 ## Future
 
 * Project file version pinning
+* More full bodied classes
+* More exception handling for helpful error messages
+* More dependency types
+* Addition/Subtraction flags for project IDs and version targets
 
 ## Background
 
