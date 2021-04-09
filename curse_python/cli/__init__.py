@@ -2,14 +2,18 @@ from curse_python.mods import get_mod_project, ModFile
 from curse_python.resolving import resolve_projects
 from curse_python.exceptions import CanNotResolveException
 from curse_python.cli.manifest import ModManifest, DownloadedMod
+from curse_python.cli.logging import logger
 from typing import Optional, List
-import requests
 import progressbar
+import requests
 import argparse
 import json
 import sys
+import logging
 from os import remove
 from pathlib import Path
+
+logger.setLevel(logging.DEBUG)
 
 parser = argparse.ArgumentParser(
     prog='curse_python',
@@ -30,22 +34,25 @@ def download_mod_files(save_location, mod_files: List[ModFile]):
         progressbar.widgets.Percentage(),
         ' of ', progressbar.DataSize('max_value'),
         ' @ ', progressbar.AdaptiveTransferSpeed(),
-        ', ', progressbar.Variable('file'),
         ' ', progressbar.Bar(),
         ' ', progressbar.Timer(),
         ' ', progressbar.AdaptiveETA()
     ]
 
+    # Preallocate space.
+    for mod_file in mod_files:
+        logger.debug(f'Preallocating space for {mod_file.file_name}')
+        with open(Path(save_location).joinpath(mod_file.file_name), 'wb') as fd:
+            fd.truncate(mod_file.file_length)
+
     with progressbar.ProgressBar(max_value=total, widgets=widgets).start() as bar:
         for mod_file in mod_files:
-            bar.update(total_obtained, file=mod_file.file_name)
+            logger.info(f'Downloading: {mod_file.file_name}')
+            bar.update(total_obtained)
             r = session.get(mod_file.download_url, stream=True)
             #content_length = int(r.headers['content-length'])
             r.raise_for_status()
             with open(Path(save_location).joinpath(mod_file.file_name), 'wb') as fd:
-                # Avoid downloading and finding we don't have enough space on disk.
-                fd.truncate(mod_file.file_length)
-                fd.seek(0, 0)
                 for chunk in r.iter_content(chunk_size=128):
                     total_obtained = total_obtained + len(chunk)
                     bar.update(total_obtained)
@@ -71,12 +78,12 @@ def main():
         set(wanted_project_ids) != set(wanted_project_ids)
     )
 
-    print('Resolving Projects...')
+    logger.info('Resolving Projects...')
     mod_files = None
     try:
         mod_files = resolve_projects(wanted_project_ids, version_targets)
     except CanNotResolveException as err:
-        print(f'Project ID {err.project_id} is not compatible with any versions provided.')
+        logger.critical(f'Project ID {err.project_id} is not compatible with any versions provided.')
         sys.exit(1)
     work_done = False
     to_download: List[ModFile] = []
@@ -89,18 +96,18 @@ def main():
                 break
         
         if existing_mod == None:
-            print(f'Will obtain new file: {mod_file.file_name}.')
+            logger.info(f'Will obtain new file: {mod_file.file_name}.')
             download = True
         elif existing_mod and existing_mod.file_date < mod_file.file_date:
-            print(f'Will replace {existing_mod.file_name} with {mod_file.file_name}')
+            logger.info(f'Will replace {existing_mod.file_name} with {mod_file.file_name}')
             old_mod_path = save_location.joinpath(existing_mod.file_name)
             if old_mod_path.exists():
                 remove(old_mod_path)
             else:
-                print(f'However it has been already removed.')
+                logger.warning(f'However it has been already removed.')
             download = True
         else:
-            print(f'{mod_file.file_name} is already up to date.')
+            logger.info(f'{mod_file.file_name} is already up to date.')
         
         if download:
             to_download.append(mod_file)
@@ -125,24 +132,24 @@ def main():
                     break
             
             if not found:
-                print(f'Removing unneeded mod file: {downloaded_mods.file_name}')
+                logger.info(f'Removing unneeded mod file: {downloaded_mods.file_name}')
                 old_mod_path = save_location.joinpath(downloaded_mods.file_name)
                 if old_mod_path.exists():
                     remove(old_mod_path)
                 else:
-                    print(f'However it has been already removed.')
+                    logger.warning(f'However it has been already removed.')
 
                 project_ids_to_remove.append(downloaded_mods.project_id)
         
         mod_manifest.downloaded_mods = filter(lambda mod_file: mod_file.project_id not in project_ids_to_remove, mod_manifest.downloaded_mods)
     else:
-        print('All mods up-to-date; nothing done.')
+        logger.info('All mods up-to-date; nothing done.')
     
     if config_update:
         with open(manifest_location, 'wb') as config_file:
             mod_manifest.version_targets = version_targets
             mod_manifest.wanted_projects = wanted_project_ids
             config_file.write(bytes(mod_manifest.tojson(indent=4), "utf8"))
-            print('Config updated.')
+            logger.info('Config updated.')
 
         
